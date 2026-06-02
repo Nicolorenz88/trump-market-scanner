@@ -43,12 +43,11 @@ export default async function handler(req, res) {
 
     const prompt = `You are a financial intelligence AI. Today is ${dateStr} at ${timeStr} (Italian time).
 
-Use your web search tool to find the LATEST news about:
-1. Trump's statements about specific companies, sectors, or assets (Truth Social, X, press conferences, interviews)
-2. Market-moving news related to Trump's policies (tariffs, sanctions, executive orders, trade deals)
-3. Significant financial market news from today (major moves, earnings surprises, macro data)
+IMPORTANT: Do exactly 2 web searches total — no more. Be fast.
+Search 1: "Trump market news ${dateStr}"
+Search 2: "stock market news today ${dateStr}"
 
-After searching, return a JSON object with EXACTLY this structure (no markdown, no preamble, no explanation — just the JSON object):
+Return ONLY a JSON object, no markdown, no explanation:
 {
   "alerts": [
     {
@@ -56,13 +55,13 @@ After searching, return a JSON object with EXACTLY this structure (no markdown, 
       "source": "Reuters",
       "sourceIcon": "📰",
       "headline": "headline text",
-      "tickers": ["NVDA","AMD"],
-      "keywords": ["tariff","ban"],
+      "tickers": ["NVDA"],
+      "keywords": ["tariff"],
       "score": 88,
       "priority": "HIGH",
       "time": "${timeStr}",
       "datetime": "${now.toISOString().slice(0,19)}",
-      "url": "https://actual-article-url.com/...",
+      "url": "",
       "rationale": "1-sentence explanation"
     }
   ],
@@ -71,11 +70,11 @@ After searching, return a JSON object with EXACTLY this structure (no markdown, 
       "id": "n1",
       "source": "Bloomberg",
       "headline": "Market news headline",
-      "snippet": "Brief 1-2 sentence summary",
-      "tickers": ["NVDA","MSFT"],
+      "snippet": "1 sentence summary",
+      "tickers": ["NVDA"],
       "tag": "markets",
-      "datetime": "2025-06-02T14:32:00",
-      "url": "https://actual-article-url.com/...",
+      "datetime": "${now.toISOString().slice(0,19)}",
+      "url": "",
       "time": "${timeStr}"
     }
   ],
@@ -83,48 +82,23 @@ After searching, return a JSON object with EXACTLY this structure (no markdown, 
     {
       "ticker": "NVDA",
       "impact": "positive",
-      "headline": "Relevant headline affecting this ticker",
-      "reason": "1-2 sentence explanation of impact on this specific stock",
+      "headline": "Relevant headline",
+      "reason": "1 sentence",
       "url": "",
       "time": "${timeStr}"
     }
   ],
-  "sourceCounts": {
-    "reuters": 3,
-    "ap": 2,
-    "cnbc": 4,
-    "politico": 1,
-    "guardian": 0,
-    "bloomberg": 3,
-    "wsj": 2,
-    "ft": 1
-  }
+  "sourceCounts": {"reuters":0,"ap":0,"cnbc":0,"politico":0,"guardian":0,"bloomberg":0,"wsj":0,"ft":0}
 }
 
-RULES for alerts:
-- Only include headlines where Trump directly mentions or implies companies/assets
-- Extract real NYSE/NASDAQ tickers; for sectors use ETFs (ITA=defense, XLE=energy, XLF=finance, SMH=semiconductors)
-- Score 0-100: directness of Trump mention (40pts) + ticker specificity (30pts) + keyword urgency (30pts)
-- Priority: HIGH≥85, MEDIUM 65-84, LOW 50-64. Omit below 50.
-- sourceIcon: 📰 news, 🇺🇸 Truth Social, 𝕏 X/Twitter, 📺 TV
-- url: MUST be the real article URL from your web search results (use "" only if genuinely not found)
-- datetime: ISO 8601 of the article's actual publication time
-
-RULES for news:
-- 5-7 significant market/financial news items from today, NOT necessarily Trump-related
-- tag must be one of: markets, politics, macro, trade
-- tickers: real NYSE/NASDAQ symbols mentioned (use [] if none)
-- datetime: ISO 8601 of actual article publication time
-- url: MUST be the real article URL from your web search results
-
-RULES for portfolio:
-- Analyze impact on each ticker: ${ptf}
-- impact: positive, negative, neutral, or watch
-- Only return tickers from this list: ${ptf}`;
+RULES:
+- alerts: max 3, only Trump mentions of companies/assets. Tickers: real NYSE/NASDAQ or ETFs (ITA,XLE,XLF,SMH). Score 0-100, priority HIGH≥85/MEDIUM 65-84/LOW 50-64, omit below 50.
+- news: max 3 market/financial items. tag: markets|politics|macro|trade.
+- portfolio: analyze impact for: ${ptf}. impact: positive|negative|neutral|watch.`;
 
     const msg = await ai.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 4000,
+      max_tokens: 2000,
       tools: [{ type: 'web_search_20250305', name: 'web_search' }],
       messages: [{ role: 'user', content: prompt }],
     });
