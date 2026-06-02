@@ -1,0 +1,15 @@
+{
+  "name": "trump-market-scanner",
+  "version": "1.0.0",
+  "description": "Trump Market Scanner — RSS + Claude AI, deployed on Vercel",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.30.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
