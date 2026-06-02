@@ -12,8 +12,8 @@
 import Anthropic from '@anthropic-ai/sdk';
 
 export const config = {
-  runtime: 'nodejs20.x',
-  maxDuration: 60, // web_search can take up to ~30s
+  runtime: 'nodejs',
+  maxDuration: 60,
 };
 
 const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
